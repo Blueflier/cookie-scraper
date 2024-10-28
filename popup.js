@@ -9,13 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize copy button
   document.getElementById('copyButton').addEventListener('click', () => {
     const cookies = JSON.parse(document.getElementById('cookieOutput').getAttribute('data-cookies') || '[]');
-    const cookieText = JSON.stringify(cookies, null, 2);
-    navigator.clipboard.writeText(cookieText);
+    const cookieString = cookies
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+    
+    navigator.clipboard.writeText(cookieString);
     
     const copyButton = document.getElementById('copyButton');
     copyButton.textContent = 'Copied!';
     setTimeout(() => {
-      copyButton.textContent = 'Copy All';
+      copyButton.textContent = 'Copy Cookie String';
     }, 1500);
   });
 
@@ -33,8 +36,22 @@ function displayCookies(cookies, filterText = '') {
 
   if (filteredCookies.length === 0) {
     output.innerHTML = '<div class="no-cookies">No matching cookies found</div>';
-  } else {
-    output.innerHTML = filteredCookies.map(cookie => `
+    return;
+  }
+
+  // Create the formatted cookie string
+  const cookieString = filteredCookies
+    .map(cookie => `${cookie.name}=${cookie.value}`)
+    .join('; ');
+
+  // Display both the formatted string and individual cookies
+  output.innerHTML = `
+    <div class="cookie-string">
+      <div class="cookie-string-header">Cookie String Format:</div>
+      <div class="cookie-string-value">${escapeHtml(cookieString)}</div>
+    </div>
+    <div class="cookies-detail-header">Individual Cookies:</div>
+    ${filteredCookies.map(cookie => `
       <div class="cookie-item">
         <div class="cookie-header">
           <span class="cookie-name">${escapeHtml(cookie.name)}</span>
@@ -42,8 +59,8 @@ function displayCookies(cookies, filterText = '') {
         </div>
         <div class="cookie-value">${escapeHtml(cookie.value)}</div>
       </div>
-    `).join('');
-  }
+    `).join('')}
+  `;
 }
 
 function escapeHtml(unsafe) {
